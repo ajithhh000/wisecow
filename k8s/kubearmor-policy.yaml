@@ -1,23 +1,20 @@
 apiVersion: security.kubearmor.com/v1
-kind: KubeArmorPolicy
-metadata:
-  name: wisecow-zero-trust
-  namespace: default
-spec:
-  severity: high
-  selector:
-    matchLabels:
-      app: wisecow
-  file:
-    - matchPath: /etc/passwd
-      message: "Read access to /etc/passwd blocked"
-      action: Block
-  network:
-    - direction: egress
-      protocol: ALL
-      action: Block
-      message: "Block all outbound network connections by default"
-  capabilities:
-    - matchCapabilities: ["CAP_SYS_PTRACE","CAP_SYS_ADMIN"]
-      action: Block
-      message: "Blocking dangerous capabilities"
+ kind: KubeArmorPolicy
+ metadata:
+ name: wisecow-zero-trust
+ namespace: default
+ spec:
+ severity: high
+ selector:
+ matchLabels:
+ app: wisecow
+ file:- matchPath: /etc/passwd
+ message: "Read access to /etc/passwd blocked"
+ action: Block
+ network:- direction: egress
+ protocol: ALL
+ action: Block
+ message: "Block all outbound network connections by default"
+ capabilities:- matchCapabilities: ["CAP_SYS_PTRACE","CAP_SYS_ADMIN"]
+ action: Block
+ message: "Blocking dangerous capabilities"
