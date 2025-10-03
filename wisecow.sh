@@ -1,46 +1,43 @@
 #!/usr/bin/env bash
 
 SRVPORT=4499
-RSPFILE=response
 
-rm -f $RSPFILE
-mkfifo $RSPFILE
-
-get_api() {
-	read line
-	echo $line
+prerequisites() {
+    command -v cowsay >/dev/null 2>&1 &&
+    command -v fortune >/dev/null 2>&1 || {
+        echo "Install prerequisites: cowsay fortune"
+        exit 1
+    }
 }
 
 handleRequest() {
-    # 1) Process the request
-	get_api
-	mod=`fortune`
+    while read -r line; do
+        [[ "$line" == $'\r' || -z "$line" ]] && break
+    done
 
-cat <<EOF > $RSPFILE
-HTTP/1.1 200
+    mod=$(fortune)
+    cow=$(cowsay "$mod")
 
+    cat <<EOF
+HTTP/1.1 200 OK
+Content-Type: text/html
 
-<pre>`cowsay $mod`</pre>
+<pre>
+$cow
+</pre>
 EOF
 }
 
-prerequisites() {
-	command -v cowsay >/dev/null 2>&1 &&
-	command -v fortune >/dev/null 2>&1 || 
-		{ 
-			echo "Install prerequisites."
-			exit 1
-		}
-}
-
 main() {
-	prerequisites
-	echo "Wisdom served on port=$SRVPORT..."
+    prerequisites
+    echo "Wisdom served on port=$SRVPORT..."
 
-	while [ 1 ]; do
-		cat $RSPFILE | nc -lN $SRVPORT | handleRequest
-		sleep 0.01
-	done
+    trap "exit" INT TERM
+    trap "kill 0" EXIT
+
+    while true; do
+        (handleRequest) | nc -lN $SRVPORT
+    done
 }
 
 main
